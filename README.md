@@ -1,5 +1,3 @@
-  
-  
 
 **ARM Bare-Metal programming without a metal :)**
 
@@ -707,6 +705,12 @@ For more control over the memory layout, you can use a linker script.
 
 ```
 SECTIONS
+{
+    . = 0x10000;
+    .text : { *(.text*) }
+    .data : { *(.data*) }
+    .bss  : { *(.bss*) }
+}
 ```
 
 **Compile with the linker script:**
@@ -723,6 +727,22 @@ If you prefer to write in C instead of assembly, you can write directly to the U
 
 ```
 volatile unsigned int * const UART0DR = (unsigned int *)0x101f1000;
+
+void uart_putc(char c) {
+    while (*(volatile unsigned int *)(0x101f1000 + 0x18) & 0x20); // Wait if TX FIFO is full
+    *UART0DR = c;
+}
+
+void uart_print(const char *s) {
+    while (*s != '\0') {
+        uart_putc(*s++);
+    }
+}
+
+void _start(void) {
+    uart_print("Hello, World!\n");
+    while (1); // Loop indefinitely
+}
 ```
 
 **Compile the C code:**

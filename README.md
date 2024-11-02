@@ -697,28 +697,6 @@ sudo apt-get update
     -   You can use other machines supported by QEMU, such as `realview-pb-a8` or `stellaris`.
         
 
-#### **Using a Linker Script**
-
-For more control over the memory layout, you can use a linker script.
-
-**Create a file named** `linker.ld`**:**
-
-```
-SECTIONS
-{
-    . = 0x10000;
-    .text : { *(.text*) }
-    .data : { *(.data*) }
-    .bss  : { *(.bss*) }
-}
-```
-
-**Compile with the linker script:**
-
-```
-arm-none-eabi-gcc -nostdlib -nostartfiles -T linker.ld -o hello_serial.elf hello_serial.s
-```
-
 ### **Alternative: Using C Code**
 
 If you prefer to write in C instead of assembly, you can write directly to the UART registers in C.
@@ -745,16 +723,48 @@ void _start(void) {
 }
 ```
 
-**Compile the C code:**
+**Create a file named** `hello_serial_c.ld`**:**
 
 ```
-arm-none-eabi-gcc -nostdlib -nostartfiles -Ttext=0x10000 -o hello_serial_c.elf hello_serial.c
+ENTRY(_Reset)
+SECTIONS
+{
+ . = 0x10000;
+ .startup . : { hello_serial_c_startup.o(.text) }
+ .text : { *(.text) }
+ .data : { *(.data) }
+ .bss : { *(.bss COMMON) }
+ . = ALIGN(8);
+ . = . + 0x1000; /* 4kB of stack memory */
+ stack_top = .;
+
+```
+
+**Create a file named** `hello_serial_c_startup.s`**:**
+
+```
+.global _Reset
+_Reset:
+ LDR sp, =stack_top
+ BL _start
+ B .
+```
+
+
+**Compile the Assembler, C code and link:**
+
+```
+arm-none-eabi-as -mcpu=arm926ej-s -g hello_serial_c_startup.s -o hello_serial_c_startup.o
+arm-none-eabi-gcc -c -mcpu=arm926ej-s -g hello_serial.c -o hello_serial_c.o
+arm-none-eabi-ld -T hello_serial_c.ld hello_serial_c.o hello_serial_c_startup.o -o hello_serial_c.elf
+arm-none-eabi-objcopy -O binary hello_serial_c.elf hello_serial_c.bin
+
 ```
 
 **Run with QEMU:**
 
 ```
-qemu-system-arm -M versatilepb -m 128M -nographic -kernel hello_serial_c.elf
+qemu-system-arm -M versatilepb -m 128M -nographic -kernel hello_serial_c.bin
 ```
 
 ### **Conclusion**

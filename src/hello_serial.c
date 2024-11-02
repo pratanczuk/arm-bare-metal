@@ -13,5 +13,6 @@ void uart_print(const char *s) {
 
 void _start(void) {
     uart_print("Hello, World!\n");
+    uart_print("'Press CTRL + a, x' to exit from qemu !\n");
     while (1); // Loop indefinitely
 }

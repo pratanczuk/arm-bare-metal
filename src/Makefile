@@ -21,6 +21,18 @@ start: hello_serial_c.elf
 start_debug: hello_serial_c.elf
 	qemu-system-arm -M versatilepb -m 128M -nographic -s -S -kernel hello_serial_c.bin
 
+hello_arm64: hello_arm64.s
+	aarch64-linux-gnu-gcc -nostdlib -o hello_arm64 hello_arm64.s
+
+start_hello_arm64: hello_arm64
+	qemu-arm64-static ./hello_arm64
+
+hello_armel: hello_armel.s
+	arm-linux-gnueabi-gcc -nostdlib -o hello_armel hello_armel.s
+
+start_hello_armel: hello_armel
+	qemu-arm-static ./hello_armel
+
 clean:
 	rm -f *.o
 	rm -f *.elf

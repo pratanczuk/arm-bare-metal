@@ -25,7 +25,7 @@ hello_arm64: hello_arm64.s
 	aarch64-linux-gnu-gcc -nostdlib -o hello_arm64 hello_arm64.s
 
 start_hello_arm64: hello_arm64
-	qemu-arm64-static ./hello_arm64
+	qemu-arm64-static -L /usr/aarch64-linux-gnu/ ./hello_arm64
 
 hello_armel: hello_armel.s
 	arm-linux-gnueabi-gcc -nostdlib -o hello_armel hello_armel.s
